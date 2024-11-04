@@ -6,7 +6,7 @@
       :rules="loginRules"
       class="login-form"
     >
-      <h3 class="title">若依后台管理系统</h3>
+      <h3 class="title">万北灌区数据治理平台</h3>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -94,7 +94,7 @@ const { proxy } = getCurrentInstance();
 
 const loginForm = ref({
   username: "admin",
-  password: "admin123",
+  password: "888888",
   rememberMe: false,
   code: "",
   uuid: "",
@@ -141,7 +141,7 @@ function handleLogin() {
       }
       // 调用action的登录方法
       userStore
-        .login(loginForm.value)
+        .irLogin(loginForm.value)
         .then(() => {
           const query = route.query;
           const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
@@ -186,7 +186,7 @@ function getCookie() {
   };
 }
 
-getCode();
+// getCode();
 getCookie();
 </script>
 
