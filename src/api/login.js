@@ -22,7 +22,7 @@ export function login(username, password, code, uuid) {
 export function irLogin(data) {
 
     return request({
-        url: '/stage/user/toSyslogin',
+        url: '/sl-api/stage/user/toSyslogin',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             // 'Accept': '*/*',
