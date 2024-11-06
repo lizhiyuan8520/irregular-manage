@@ -16,40 +16,67 @@ import request from '@/utils/request'
 //出参 boolean
 export const addPointGroup = (data) => {
     return request({
-        url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+        url: '/sl-api/intra/sl/irrigationgroup/submit',
         method: 'post',
         data
     })
 }
-// 删除点位分组
-//入参 ids
-//出参 boolean
+export const addPoint = (data) => {
+        return request({
+            url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+            method: 'post',
+            data
+        })
+    }
+    // 删除点位分组
+    //入参 ids
+    //出参 boolean
 export const delPointGroup = (data) => {
     return request({
-        url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+        url: '/sl-api/intra/sl/irrigationgroup/delete',
         method: 'delete',
         data
     })
 }
-// 获取点位分组
-//入参 name
-//返回实例
-// {
-// 	"curPage": 0,
-// 	"list": [],
-// 	"pageSize": 0,
-// 	"totalCount": 0,
-// 	"totalPage": 0
-// }
+export const delPoint = (ids) => {
+        return request({
+            url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+            method: 'delete',
+            ids
+        })
+    }
+    // 获取点位分组
+    //入参 name
+    //返回实例
+    // {
+    // 	"curPage": 0,
+    // 	"list": [],
+    // 	"pageSize": 0,
+    // 	"totalCount": 0,
+    // 	"totalPage": 0
+    // }
 export const getPointGroup = (data) => {
     return request({
-        url: '/sl-api/api/sl/irrigationgrouppoint/browse',
+        url: '/sl-api/intra/sl/irrigationgroup/list',
         method: 'get',
-        data
+        params: data
     })
 }
-// 获取点位分组详情
-export const getPointGroupById = (id) => {
+export const getPoint = (data) => {
+        return request({
+            url: '/sl-api/intra/sl/irrigationgrouppoint/list',
+            method: 'get',
+            params: data
+        })
+    }
+    // 获取点位分组详情
+export const getGroupById = (id) => {
+    return request({
+        url: `/sl-api/intra/sl/irrigationgroup/detail/${id}`,
+        method: 'get'
+    })
+}
+export const getPointById = (id) => {
     return request({
         url: `/sl-api/api/sl/irrigationgrouppoint/detail/${id}`,
         method: 'get'

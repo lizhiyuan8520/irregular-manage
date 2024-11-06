@@ -19,14 +19,18 @@
     <div class="btuArea">   <el-button type="success"  @click="openDialog()">新增</el-button></div>
     <!-- 列表和分页 -->
     <el-table :data="pointGroups" style="width: 100%;margin-top:10px;height:700px" border>
-      <el-table-column prop="groupId" label="序号" width="80"></el-table-column>
       <el-table-column prop="name" label="名称"></el-table-column>
-      <el-table-column prop="latitude" label="纬度"></el-table-column>
-      <el-table-column prop="longitude" label="经度"></el-table-column>
+      <el-table-column prop="remark" label="备注"></el-table-column>
+      <el-table-column prop="snapshot" label="图标">
+               <template #default="scope">
+          <el-image style="width: 30px; height: 30px"   :preview-src-list="[scope.row.snapshot]" :src="scope.row.snapshot" fit="fill">
+          </el-image>
+        </template>
+      </el-table-column>
       <el-table-column prop="state" label="状态" width="100">
         <template #default="scope">
           <el-tag :type="scope.row.state === 1 ? 'success' : 'info'">
-            {{ scope.row.state === 1 ? "在线" : "离线" }}
+            {{ scope.row.state === 1 ? "启用" : "未启用" }}
           </el-tag>
         </template>
       </el-table-column>
@@ -38,7 +42,7 @@
           <el-button
             type="danger"
             size="small"
-            @click="deletePointGroup(scope.row.groupId)"
+            @click="deletePointGroup(scope.row.id)"
             >删除</el-button
           >
         </template>
@@ -55,36 +59,31 @@
     />
 </div>
 
-
-
     <!-- 弹框 -->
     <el-dialog
       :title="isEdit ? '编辑点位分组' : '新增点位分组'"
       v-model="dialogVisible"
+      append-to-body 
+      destroy-on-close
       width="500px"
     >
 
-      <el-form :model="pointGroupForm" append-to-body destroy-on-close ref="pointGroupForm" label-width="100px">
-        <el-form-item label="名称" prop="name">
-          <el-input
+      <el-form  :model="pointGroupForm" append-to-body destroy-on-close  label-width="100px">
+        <el-form-item label="名称" prop="name" :rules="[ { required: true, message: '请输入名称', trigger: 'blur' }]">
+        <el-input
             v-model="pointGroupForm.name"
             placeholder="请输入名称"
-          ></el-input>
+          />
         </el-form-item>
-        <el-form-item label="纬度" prop="latitude">
-          <el-input
-            v-model="pointGroupForm.latitude"
-            placeholder="请输入纬度"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="经度" prop="longitude">
-          <el-input
-            v-model="pointGroupForm.longitude"
-            placeholder="请输入经度"
-          ></el-input>
+        <el-form-item label="备注" prop="remark">
+           <el-input
+            :rows="3"
+            type="textarea"
+            v-model="pointGroupForm.remark"
+            placeholder="请输入备注"
+          />
         </el-form-item>
         <el-form-item label="点位图标" prop="snapshot">
-            
           <el-upload
           class="avatar-uploader"
           action="/dev-api/sl-api/stage/oss/upload"
@@ -95,11 +94,12 @@
           :on-success="handleAvatarSuccess"
           :before-upload="beforeAvatarUpload"
         >
-           <img  v-if="imgurl"  :src="imgurl" class="avatar" />
+           <img  v-if="pointGroupForm.snapshot"  :src="pointGroupForm.snapshot" class="avatar" />
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           <template #tip>
           <div style="font-size: 12px; color: #999;">
-            仅支持 JPG/PNG 格式，大小不超过 200KB。
+            仅支持 JPG/PNG 格式，大小不超过 200KB。<br>
+            如未上传则使用默认点代替。
           </div>
         </template>
         </el-upload>
@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { addPointGroup, delPointGroup, getPointGroup } from "@/api/pointGroup"; // 根据实际路径修改
 import { Delete, Edit, Search, Share, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -122,7 +122,7 @@ import { getToken } from '@/utils/auth'
 const searchForm = reactive({
   name: "",
 });
-let name=ref('')
+
 const pointGroups = ref([]);
 const pagination = reactive({
   currentPage: 1,
@@ -131,59 +131,57 @@ const pagination = reactive({
 });
 
 const dialogVisible = ref(false);
+const dialogVisible1 = ref(false);
 const isEdit = ref(false);
-let pointGroupForm = ref({
+const pointGroupForm = reactive({
   name: "",
-  latitude: "",
-  longitude: "",
+  remark:"",
   snapshot: "",
   irriId:1000
 });
-const imgurl=ref('')
+const form = reactive({ name: '', remark: '', image: '', coordinates: null });
 const handleAvatarSuccess=(res,uploadFile)=>{
   ElMessage({
     message: '上传成功！',
     type: 'success',
   })
  pointGroupForm.snapshot=res.data.filePath||res.data.fileUrl||res.data.link||res.data.url
- imgurl.value=pointGroupForm.snapshot
- console.log('pointGroupForm.snapshot',imgurl.value)
 }
 const fetchData = async (page = 1) => {
   const params = {
     name: searchForm.name,
-    curPage: page,
+    curPage: pagination.currentPage,
     pageSize: pagination.pageSize,
   };
-  const res = await getPointGroup(params);
-  if (res) {
-    pointGroups.value = res.list;
-    pagination.total = res.totalCount;
-    pagination.currentPage = res.curPage;
-  }
+  getPointGroup(params).then(res=>{
+    pointGroups.value = res.data.list;
+    pagination.total = res.data.totalCount;
+    pagination.currentPage = res.data.curPage;
+  })
+
 };
 
 const openDialog = (row) => {
+    dialogVisible.value = true;
   if (row) {
     isEdit.value = true;
-    Object.assign(pointGroupForm.value, row);
+    Object.assign(pointGroupForm, row);
 
   } else {
     isEdit.value = false;
-    pointGroupForm.value = {
+    Object.assign(pointGroupForm, {
       groupId: null,
       name: "",
       latitude: "",
       longitude: "",
       snapshot: "",
       irriId: 1000,
-    };
+    });
 
   }
-  imgurl.value=pointGroupForm.value.snapshot
-  dialogVisible.value = true;
+
 };
-const beforeAvatarUpload=()=>{
+const beforeAvatarUpload=(file)=>{
    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   const isLt200k = file.size / 1024 < 200;
 
@@ -196,16 +194,20 @@ const beforeAvatarUpload=()=>{
   return isJpgOrPng && isLt200k;
 }
 const handleSubmit = async () => {
-  addPointGroup(pointGroupForm.value).then((res) => {
-    console.log(res);
+  addPointGroup(pointGroupForm).then((res) => {
+    ElMessage.success("新增成功！")
   });
   dialogVisible.value = false;
   fetchData();
 };
 
 const deletePointGroup = async (id) => {
-  await delPointGroup({ ids: [id] });
-  fetchData();
+   delPointGroup([id]).then(res=>{
+    if(res)
+    ElMessage.success('删除成功!')
+    fetchData();
+   })
+
 };
 
 const resetForm = () => {
