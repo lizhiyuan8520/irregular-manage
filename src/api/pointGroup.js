@@ -16,14 +16,14 @@ import request from '@/utils/request'
 //出参 boolean
 export const addPointGroup = (data) => {
     return request({
-        url: '/sl-api/intra/sl/irrigationgroup/submit',
+        url: '/intra/sl/irrigationgroup/submit',
         method: 'post',
         data
     })
 }
 export const addPoint = (data) => {
         return request({
-            url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+            url: '/api/sl/irrigationgrouppoint/submit',
             method: 'post',
             data
         })
@@ -33,14 +33,14 @@ export const addPoint = (data) => {
     //出参 boolean
 export const delPointGroup = (data) => {
     return request({
-        url: '/sl-api/intra/sl/irrigationgroup/delete',
+        url: '/intra/sl/irrigationgroup/delete',
         method: 'delete',
         data
     })
 }
 export const delPoint = (ids) => {
         return request({
-            url: '/sl-api/api/sl/irrigationgrouppoint/submit',
+            url: '/api/sl/irrigationgrouppoint/submit',
             method: 'delete',
             ids
         })
@@ -57,14 +57,14 @@ export const delPoint = (ids) => {
     // }
 export const getPointGroup = (data) => {
     return request({
-        url: '/sl-api/intra/sl/irrigationgroup/list',
+        url: '/intra/sl/irrigationgroup/list',
         method: 'get',
         params: data
     })
 }
 export const getPoint = (data) => {
         return request({
-            url: '/sl-api/intra/sl/irrigationgrouppoint/list',
+            url: '/intra/sl/irrigationgrouppoint/list',
             method: 'get',
             params: data
         })
@@ -72,13 +72,13 @@ export const getPoint = (data) => {
     // 获取点位分组详情
 export const getGroupById = (id) => {
     return request({
-        url: `/sl-api/intra/sl/irrigationgroup/detail/${id}`,
+        url: `/intra/sl/irrigationgroup/detail/${id}`,
         method: 'get'
     })
 }
 export const getPointById = (id) => {
     return request({
-        url: `/sl-api/api/sl/irrigationgrouppoint/detail/${id}`,
+        url: `/api/sl/irrigationgrouppoint/detail/${id}`,
         method: 'get'
     })
 }
