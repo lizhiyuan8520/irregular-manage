@@ -21,6 +21,7 @@ const useUserStore = defineStore(
                 const uuid = userInfo.uuid
                 return new Promise((resolve, reject) => {
                     login(username, password, code, uuid).then(res => {
+                        console.log(res);
                         setToken(res.token)
                         this.token = res.token
                         resolve()
@@ -37,6 +38,7 @@ const useUserStore = defineStore(
                     irLogin({ username, password, captcha }).then(res => {
                         setToken(res.data.token)
                         this.token = res.data.token
+                        this.permissions = res.data.permsList
                         resolve()
                     }).catch(error => {
 
@@ -48,11 +50,12 @@ const useUserStore = defineStore(
             getInfo() {
                 return new Promise((resolve, reject) => {
                     getInfo().then(res => {
-                        const user = res.user
+                        console.log("---getInfo--res------",res);
+                        const user = res.user;
                         const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;
 
-                        if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
-                            this.roles = res.roles
+                        if (user.roles && user.roles.length > 0) { // 验证返回的roles是否是一个非空数组
+                            this.roles = user.roles
                             this.permissions = res.permissions
                         } else {
                             this.roles = ['ROLE_DEFAULT']

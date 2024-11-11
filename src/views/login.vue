@@ -109,7 +109,7 @@ const loginRules = {
 const codeUrl = ref("");
 const loading = ref(false);
 // 验证码开关
-const captchaEnabled = ref(false);
+const captchaEnabled = ref(true);
 // 注册开关
 const register = ref(false);
 const redirect = ref(undefined);
@@ -141,7 +141,7 @@ function handleLogin() {
       }
       // 调用action的登录方法
       userStore
-        .irLogin(loginForm.value)
+        .login(loginForm.value)
         .then(() => {
           const query = route.query;
           const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
@@ -186,7 +186,7 @@ function getCookie() {
   };
 }
 
-// getCode();
+getCode();
 getCookie();
 </script>
 

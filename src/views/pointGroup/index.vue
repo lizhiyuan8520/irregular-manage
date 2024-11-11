@@ -86,7 +86,7 @@
         <el-form-item label="点位图标" prop="snapshot">
           <el-upload
           class="avatar-uploader"
-          action="/dev-api/sl-api/stage/oss/upload"
+          action="/dev-api/stage/oss/upload"
           :show-file-list="false"
           :headers="{
             'X-Noodle-Token':getToken()

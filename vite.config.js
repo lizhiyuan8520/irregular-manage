@@ -34,6 +34,7 @@ export default defineConfig(({ mode, command }) => {
         //http://localhost:8081/sl-api/
         '/dev-api': {
           target: 'http://123.57.193.238:8088/sl-api',
+          // target: 'http://localhost:8081/sl-api',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, '')
         }
