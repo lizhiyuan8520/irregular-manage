@@ -94,7 +94,18 @@ export const constantRoutes = [{
                     import ('@/views/pointGroup'),
                 meta: { title: '点位分组管理', icon: 'nested', affix: false }
             }]
-        }
+        },
+        {
+            path: '/point',
+            component: Layout,
+            children: [{
+                path: '',
+                name: 'point',
+                component: () =>
+                    import ('@/views/point'),
+                meta: { title: '点位管理', icon: 'cascader', affix: false }
+            }]
+        },
     ]
     // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes = [{
