@@ -119,14 +119,24 @@ export const constantRoutes = [{
     },
     {
         path: "/deviceManage",
+        name: "deviceManage",
+        meta: { title: "设备管理", icon: "cascader", affix: false },
         component: Layout,
         children: [{
-            path: "",
-            name: "deviceFactory",
-            component: () =>
-                import ("@/views/deviceFactory"),
-            meta: { title: "量测水设备", icon: "cascader", affix: false },
-        }, ],
+                path: "lcs",
+                name: "lcs",
+                component: () =>
+                    import ("@/views/device/lcs"),
+                meta: { title: "量测水设备", icon: "cascader", affix: false },
+            },
+            {
+                path: "qx",
+                name: "qx",
+                component: () =>
+                    import ("@/views/device/qx"),
+                meta: { title: "气象设备", icon: "cascader", affix: false },
+            },
+        ],
     },
 ];
 // 动态路由，基于用户权限动态去加载
