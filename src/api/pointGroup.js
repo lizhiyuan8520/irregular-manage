@@ -23,7 +23,7 @@ export const addPointGroup = (data) => {
 }
 export const addPoint = (data) => {
         return request({
-            url: '/api/sl/irrigationgrouppoint/submit',
+            url: '/intra/sl/irrigationgrouppoint/submit',
             method: 'post',
             data
         })
@@ -40,7 +40,7 @@ export const delPointGroup = (data) => {
 }
 export const delPoint = (ids) => {
         return request({
-            url: '/api/sl/irrigationgrouppoint/submit',
+            url: '/intra/sl/irrigationgrouppoint/submit',
             method: 'delete',
             ids
         })
@@ -78,7 +78,7 @@ export const getGroupById = (id) => {
 }
 export const getPointById = (id) => {
     return request({
-        url: `/api/sl/irrigationgrouppoint/detail/${id}`,
+        url: `/intra/sl/irrigationgrouppoint/detail/${id}`,
         method: 'get'
     })
 }
