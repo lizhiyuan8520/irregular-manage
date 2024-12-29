@@ -118,6 +118,17 @@ export const constantRoutes = [{
         }, ],
     },
     {
+        path: "/deviceQd",
+        component: Layout,
+        children: [{
+            path: "",
+            name: "deviceQd",
+            component: () =>
+                import ("@/views/qdTree"),
+            meta: { title: "设备渠道管理", icon: "cascader", affix: false },
+        }, ],
+    },
+    {
         path: "/deviceManage",
         name: "deviceManage",
         meta: { title: "设备管理", icon: "cascader", affix: false },
