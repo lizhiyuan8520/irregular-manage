@@ -24,8 +24,8 @@
       >
         <el-table-column label="序号" type="index" width="80" />
         <el-table-column prop="name" label="设备名称" />
+        <el-table-column prop="address" label="设备地址" />
         <el-table-column prop="factoryName" label="设备厂家" />
-        <el-table-column prop="material" label="设备材料" />
         <el-table-column prop="deptName" label="行政" />
         <el-table-column prop="channelName" label="渠道" />
         <el-table-column prop="state" label="设备状态">
@@ -33,7 +33,6 @@
             {{ scope.row.state == 0 ? "异常" : "正常" }}
           </template>
         </el-table-column>
-        <el-table-column prop="zhNo" label="桩号"> </el-table-column>
         <el-table-column prop="snapshot" label="设备照片">
           <template #default="scope">
             <el-image
