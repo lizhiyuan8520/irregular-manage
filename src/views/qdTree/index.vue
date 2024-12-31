@@ -8,7 +8,6 @@
       <el-button type="info" @click="handleEdit" :disabled="!selectedNode"
         >编辑节点</el-button
       >
-      <!-- <el-button type="success" @click="handleSave">保存树形结构</el-button> -->
     </div>
     <el-tree
       :data="treeData"
@@ -43,7 +42,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { getQdTree, delNode, saveNode } from "@/api/qdTree"; // 引入接口
+import { getQdTree, delNode, saveNode, getQdList } from "@/api/qdTree"; // 引入接口
 import { ElMessage } from "element-plus";
 
 // 初始化树形数据
