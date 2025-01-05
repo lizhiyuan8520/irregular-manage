@@ -41,7 +41,6 @@
     </el-row>
 
     <el-table
-      v-if="refreshTable"
       v-loading="loading"
       :data="tableData"
       row-key="deptId"
@@ -49,29 +48,33 @@
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
       <el-table-column
-        prop="deptName"
-        label="部门名称"
-        width="260"
+        prop="name"
+        label="分组名称"
+        width="200"
       ></el-table-column>
       <el-table-column
-        prop="orderNum"
-        label="排序"
+        prop="pointNum"
+        label="节点数量"
         width="200"
       ></el-table-column>
       <el-table-column prop="status" label="状态" width="100">
         <template #default="scope">
-          <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
+          {{ scope.row.state == 0 ? "启用" : "禁用" }}
         </template>
       </el-table-column>
       <el-table-column
         label="创建时间"
         align="center"
-        prop="createTime"
-        width="200"
+        prop="createAt"
+        width="300"
       >
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
-        </template>
+      </el-table-column>
+      <el-table-column
+        label="分组图标"
+        align="center"
+        prop="groupIcon"
+        width="300"
+      >
       </el-table-column>
       <el-table-column
         label="操作"
@@ -190,7 +193,7 @@
   </div>
 </template>
 
-<script setup name="Dept">
+<script setup>
 import {
   getTcList,
   delTc,
@@ -249,6 +252,7 @@ function getList() {
   loading.value = true;
   getTcList(queryParams.value).then((response) => {
     tableData.value = proxy.handleTree(response.data);
+    console.log(tableData.value, response);
     loading.value = false;
   });
 }
@@ -269,7 +273,7 @@ function reset() {
     leader: undefined,
     phone: undefined,
     email: undefined,
-    status: "0",
+    state: 0,
   };
   proxy.resetForm("deptRef");
 }
@@ -343,17 +347,11 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  proxy.$modal
-    .confirm('是否确认删除名称为"' + row.deptName + '"的数据项?')
-    .then(function () {
-      return delDept(row.deptId);
-    })
-    .then(() => {
+  proxy.$modal.confirm('是否确认删除名称为"' + row.name + '"的数据项?').then(
+    delTc([row.id]).then((res) => {
       getList();
       proxy.$modal.msgSuccess("删除成功");
     })
-    .catch(() => {});
+  );
 }
-
-getList();
 </script>
