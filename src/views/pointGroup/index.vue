@@ -64,7 +64,7 @@
 
       <!-- 分页 -->
       <el-pagination
-        @current-change="fetchData"
+        @current-change="currentPageChange"
         :current-page="pagination.currentPage"
         :page-size="pagination.pageSize"
         layout="total, prev, pager, next"
@@ -170,7 +170,7 @@ const handleAvatarSuccess = (res, uploadFile) => {
   });
   pointGroupForm.snapshot = res.data.fileUrl || res.data.link || res.data.url;
 };
-const fetchData = async (page = 1) => {
+const fetchData = () => {
   const params = {
     name: searchForm.name,
     curPage: pagination.currentPage,
@@ -183,7 +183,11 @@ const fetchData = async (page = 1) => {
     pagination.currentPage = res.data.curPage;
   });
 };
-
+const currentPageChange = (e) => {
+  console.log(e);
+  pagination.currentPage = e;
+  fetchData();
+};
 const openDialog = (row) => {
   dialogVisible.value = true;
   if (row) {

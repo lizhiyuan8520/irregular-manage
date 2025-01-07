@@ -41,11 +41,12 @@
     </el-row>
 
     <el-table
+      v-if="refreshTable"
       v-loading="loading"
       :data="tableData"
-      row-key="deptId"
+      row-key="id"
       :default-expand-all="isExpandAll"
-      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+      :tree-props="{ children: 'childList', hasChildren: 'hasChildren' }"
     >
       <el-table-column
         prop="name"
@@ -59,7 +60,7 @@
       ></el-table-column>
       <el-table-column prop="status" label="状态" width="100">
         <template #default="scope">
-          {{ scope.row.state == 0 ? "启用" : "禁用" }}
+          {{ scope.row.state == 1 ? "启用" : "禁用" }}
         </template>
       </el-table-column>
       <el-table-column
@@ -73,8 +74,17 @@
         label="分组图标"
         align="center"
         prop="groupIcon"
-        width="300"
+        width="200"
       >
+        <template #default="scope">
+          <el-image
+            style="width: 30px; height: 30px"
+            :preview-src-list="[scope.row.groupIcon]"
+            :src="scope.row.groupIcon"
+            fit="fill"
+          >
+          </el-image>
+        </template>
       </el-table-column>
       <el-table-column
         label="操作"
@@ -97,7 +107,6 @@
             >新增</el-button
           >
           <el-button
-            v-if="scope.row.parentId != 0"
             link
             type="primary"
             icon="Delete"
@@ -108,77 +117,56 @@
       </el-table-column>
     </el-table>
 
-    <!-- 添加或修改部门对话框 -->
-    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
+    <!-- 添加或修改图层对话框 -->
+    <el-dialog
+      :title="title"
+      v-model="open"
+      width="600px"
+      append-to-body
+      destroy-on-close
+    >
       <el-form ref="deptRef" :model="form" :rules="rules" label-width="80px">
         <el-row>
-          <el-col :span="24" v-if="form.parentId !== 0">
-            <el-form-item label="上级部门" prop="parentId">
-              <el-tree-select
-                v-model="form.parentId"
-                :data="deptOptions"
-                :props="{
-                  value: 'deptId',
-                  label: 'deptName',
-                  children: 'children',
+          <el-col :span="24">
+            <el-form-item label="分组名称" prop="name">
+              <el-input v-model="form.name" placeholder="请输入分组名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="分组图标" prop="groupIcon">
+              <el-upload
+                class="avatar-uploader"
+                action="/dev-api/stage/oss/upload"
+                :show-file-list="false"
+                :headers="{
+                  'X-Noodle-Token': getToken(),
+                  Authorization: 'Bearer ' + getToken(),
                 }"
-                value-key="deptId"
-                placeholder="选择上级部门"
-                check-strictly
+                :on-success="handleAvatarSuccess"
+                :before-upload="beforeAvatarUpload"
+              >
+                <img
+                  v-if="form.groupIcon"
+                  :src="form.groupIcon"
+                  class="avatar"
+                />
+                <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+                <template #tip>
+                  <div style="font-size: 12px; color: #999">
+                    仅支持 JPG/PNG 格式，大小不超过 200KB。<br />
+                    如未上传则使用默认点代替。
+                  </div>
+                </template>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="图层状态" prop="state">
+              <el-switch
+                v-model="form.state"
+                :active-value="1"
+                :inactive-value="0"
               />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="部门名称" prop="deptName">
-              <el-input v-model="form.deptName" placeholder="请输入部门名称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="显示排序" prop="orderNum">
-              <el-input-number
-                v-model="form.orderNum"
-                controls-position="right"
-                :min="0"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="负责人" prop="leader">
-              <el-input
-                v-model="form.leader"
-                placeholder="请输入负责人"
-                maxlength="20"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="联系电话" prop="phone">
-              <el-input
-                v-model="form.phone"
-                placeholder="请输入联系电话"
-                maxlength="11"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
-              <el-input
-                v-model="form.email"
-                placeholder="请输入邮箱"
-                maxlength="50"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="部门状态">
-              <el-radio-group v-model="form.status">
-                <el-radio
-                  v-for="dict in sys_normal_disable"
-                  :key="dict.value"
-                  :value="dict.value"
-                  >{{ dict.label }}</el-radio
-                >
-              </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
@@ -194,16 +182,10 @@
 </template>
 
 <script setup>
-import {
-  getTcList,
-  delTc,
-  getTcDetailById,
-  saveTc,
-  listDeptExcludeChild,
-} from "@/api/system/dept";
-
+import { getTcList, delTc, getTcDetailById, saveTc } from "@/api/tc";
+import { getToken } from "@/utils/auth";
+import { ElMessage, ElMessageBox } from "element-plus";
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable } = proxy.useDict("sys_normal_disable");
 const tableData = ref([]);
 const open = ref(false);
 const loading = ref(true);
@@ -214,47 +196,52 @@ const isExpandAll = ref(true);
 const refreshTable = ref(true);
 
 const data = reactive({
-  form: {},
   queryParams: {
     name: "",
   },
   rules: {
-    parentId: [
-      { required: true, message: "上级部门不能为空", trigger: "blur" },
-    ],
-    deptName: [
-      { required: true, message: "部门名称不能为空", trigger: "blur" },
-    ],
-    orderNum: [
-      { required: true, message: "显示排序不能为空", trigger: "blur" },
-    ],
-    email: [
-      {
-        type: "email",
-        message: "请输入正确的邮箱地址",
-        trigger: ["blur", "change"],
-      },
-    ],
-    phone: [
-      {
-        pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-        message: "请输入正确的手机号码",
-        trigger: "blur",
-      },
-    ],
+    name: [{ required: true, message: "分组名称不能为空", trigger: "blur" }],
   },
 });
 
-const { queryParams, form, rules } = toRefs(data);
+const { queryParams, rules } = toRefs(data);
+const form = reactive({});
+const handleAvatarSuccess = (res, uploadFile) => {
+  ElMessage({
+    message: "上传成功！",
+    type: "success",
+  });
+  form.groupIcon = res.data.fileUrl || res.data.link || res.data.url;
+  console.log("form.groupIcon", form.groupIcon);
+};
+const beforeAvatarUpload = (file) => {
+  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  const isLt200k = file.size / 1024 < 200;
+
+  if (!isJpgOrPng) {
+    ElMessage.error("上传图片格式应为 JPG 或 PNG!");
+  }
+  if (!isLt200k) {
+    ElMessage.error("上传图片大小不能超过 200KB!");
+  }
+  return isJpgOrPng && isLt200k;
+};
 
 /** 查询部门列表 */
 function getList() {
   loading.value = true;
-  getTcList(queryParams.value).then((response) => {
-    tableData.value = proxy.handleTree(response.data);
-    console.log(tableData.value, response);
-    loading.value = false;
-  });
+  getTcList({ curPage: 1, pageSize: 100, ...queryParams.value }).then(
+    (response) => {
+      tableData.value = proxy.handleTree(
+        response.data.list,
+        "id",
+        "parentId",
+        "childList"
+      );
+      console.log(tableData.value, response);
+      loading.value = false;
+    }
+  );
 }
 
 /** 取消按钮 */
@@ -265,16 +252,14 @@ function cancel() {
 
 /** 表单重置 */
 function reset() {
-  form.value = {
-    deptId: undefined,
-    parentId: undefined,
-    deptName: undefined,
-    orderNum: 0,
-    leader: undefined,
-    phone: undefined,
-    email: undefined,
-    state: 0,
-  };
+  Object.assign(form, {
+    id: null,
+    name: "",
+    parentId: null,
+    groupIcon: "",
+    state: 1,
+  });
+
   proxy.resetForm("deptRef");
 }
 
@@ -292,14 +277,13 @@ function resetQuery() {
 /** 新增按钮操作 */
 function handleAdd(row) {
   reset();
-  listDept().then((response) => {
-    deptOptions.value = proxy.handleTree(response.data, "deptId");
-  });
   if (row != undefined) {
-    form.value.parentId = row.deptId;
+    form.parentId = row.id;
+  } else {
+    form.parentId = 0;
   }
   open.value = true;
-  title.value = "添加部门";
+  title.value = "添加图层";
 }
 
 /** 展开/折叠操作 */
@@ -313,29 +297,23 @@ function toggleExpandAll() {
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset();
-  listDeptExcludeChild(row.deptId).then((response) => {
-    deptOptions.value = proxy.handleTree(response.data, "deptId");
-  });
-  getDept(row.deptId).then((response) => {
-    form.value = response.data;
-    open.value = true;
-    title.value = "修改部门";
-  });
+  Object.assign(form, row);
+  open.value = true;
+  title.value = "修改图层";
 }
 
 /** 提交按钮 */
 function submitForm() {
   proxy.$refs["deptRef"].validate((valid) => {
     if (valid) {
-      if (form.value.deptId != undefined) {
-        updateDept(form.value).then((response) => {
+      if (form.id) {
+        saveTc(form).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addDept(form.value).then((response) => {
+        saveTc(form).then((response) => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -347,11 +325,56 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除名称为"' + row.name + '"的数据项?').then(
-    delTc([row.id]).then((res) => {
-      getList();
-      proxy.$modal.msgSuccess("删除成功");
+  ElMessageBox.confirm(
+    '是否确认删除名称为"' + row.name + '"的数据项?',
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
+    .then(() => {
+      delTc([row.id]).then((res) => {
+        getList();
+        proxy.$modal.msgSuccess("删除成功");
+      });
     })
-  );
+    .catch(() => {
+      ElMessage.info("取消删除");
+    });
 }
+getList();
 </script>
+<style lang="scss" scoped>
+.avatar-uploader .avatar {
+  width: 100px;
+  height: 100px;
+  display: block;
+}
+.avatar {
+  width: 100px;
+  height: 100px;
+  display: block;
+}
+.avatar-uploader :deep(.el-upload) {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader :deep(.el-upload:hover) {
+  border-color: var(--el-color-primary);
+}
+
+:deep(.el-icon.avatar-uploader-icon) {
+  font-size: 28px;
+  color: #8c939d;
+  width: 100px;
+  height: 100px;
+  text-align: center;
+}
+</style>
